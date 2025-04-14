@@ -13,7 +13,7 @@ exports.loginUser = (req, res) => {
         }
 
         if(result.length <= 0) {
-            // 아이디 일치 확인
+            // 아이디 불일치 시 400 응답
             return res.status(400).json({ message: '유효하지 않은 아이디 입니다' });
         }
 
