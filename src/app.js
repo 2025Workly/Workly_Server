@@ -1,9 +1,13 @@
 const express = require('express');
-const connection = require('../db');  // DB 연결 가져오기
-
 const app = express();
+require('dotenv').config();
+const authRoutes = require('./routes/authRoutes');
 
-// 테스트 라우트
+app.use(express.json())
+
+// 라우터 등록
+app.use('/user', authRoutes); 
+
 app.get('/', (req, res) => {
   res.send('Hello, node!');
 });
