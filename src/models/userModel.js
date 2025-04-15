@@ -29,7 +29,7 @@ exports.createUser = (name, userId, pass, email, callback) => {
 }
 
 // 사용자 삭제
-exports.deleteUser = (userId, callback) => {
+exports.deleteUserById = (userId, callback) => {
     const sql = 'DELETE FROM users WHERE userId = ?';
-    db.query(sql, [userId], callback);
+    db.query(sql, [userId], callback)
 }
