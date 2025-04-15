@@ -52,8 +52,8 @@ exports.loginUser = (req, res) => {
             return res.status(401).json({ message: '비밀 번호가 일치하지 않습니다' });
         }
 
-        //JWT 토큰 생성 ( 1시간 유효)
-        const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        //JWT 토큰 생성 ( 1일 유효)
+        const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
         //로그인 성공 응답
         res.status(200).json({ message: '로그인 성공', token });
