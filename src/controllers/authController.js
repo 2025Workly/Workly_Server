@@ -25,7 +25,7 @@ exports.loginUser = (req, res) => {
     if (!userId || !validateUserId(userId)) {
         return res.status(400).json({ message: '유효하지 않은 아이디입니다' });
     }
-    if (!pass || !validatePassword(pass)) {
+    if (!pass || !validatePass(pass)) {
         return res.status(400).json({ message: '유효하지 않은 비밀번호입니다' });
     }
 
@@ -60,7 +60,7 @@ exports.loginUser = (req, res) => {
     });
 }
 
-exports.JoinUser = async (req, res) => {
+exports.joinUser = async (req, res) => {
     const { name, userId, pass, email } = req.body;
 
     // 유효성 검사
@@ -120,3 +120,34 @@ exports.JoinUser = async (req, res) => {
         res.status(500).json({ message: '서버 오류', error });
     }
 };
+
+exports.deleteUser = (req, res) => {
+    // Authorization 헤더에서 토큰을 추출
+    const token = req.headers['authorization']?.split(' ')[1]; // Bearer <token> 형태로 전달
+
+    if(!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    // 토큰 검증
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if(err) {
+            return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });
+        }
+
+        // 토큰 포함된 userId로 삭제제
+        const userId = decoded.userId;
+
+        User.deleteUserById(userId, (err, result) => {
+            if(err) {
+                return res.status(500).json({ message: 'DB 오류류' });
+            }
+            if(result.affectedRows === 0) {
+                return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+            }
+
+            // 성공적으로 삭제제
+            res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' });
+        })
+    })
+}
