@@ -135,7 +135,7 @@ exports.deleteUser = (req, res) => {
             return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });
         }
 
-        // 토큰 포함된 userId로 삭제제
+        // 토큰 포함된 userId로 삭제
         const userId = decoded.userId;
 
         User.deleteUserById(userId, (err, result) => {
@@ -146,7 +146,7 @@ exports.deleteUser = (req, res) => {
                 return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
             }
 
-            // 성공적으로 삭제제
+            // 성공적으로 삭제
             res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' });
         })
     })
