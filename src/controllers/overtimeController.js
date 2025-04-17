@@ -40,7 +40,7 @@ exports.addOvertime = (req, res) => {
             }
 
             // 야근 추가
-            Overtime.createOvertimeByuserId(date, userId, (err, result) => {
+            Overtime.createOvertimeByUserId(userId, date, (err, result) => {
                 if (err) {
                     return res.status(500).json({ message: 'DB 오류' });
                 }
@@ -96,6 +96,57 @@ exports.getMonthOvertime = (req, res) => {
                 );
 
                 return res.status(200).json({ overtimeDays });
+            });
+        });
+    });
+};
+
+exports.deleteOvertime = (req, res) => {
+    // Authorization 헤더에서 토큰을 추출
+    const token = req.headers['authorization']?.split(' ')[1];
+    const { date } = req.body;
+
+    if (!isSQLDateTimeFormat(date)) {
+        return res.status(401).json({ message: '날짜 형식이 올바르지 않습니다.' });
+    }
+
+    if (!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    // 토큰 검증
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });
+        }
+
+        // userId 추출
+        const userId = decoded.userId;
+
+        // 사용자 존재 여부 확인
+        User.findUserByUserId(userId, (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: '서버 오류' });
+            }
+
+            if (!results || results.length === 0) {
+                return res.status(404).json({ message: '유효하지 않은 사용자 ID입니다' });
+            }
+
+            // 야근 정보 삭제
+            Overtime.deleteOvertimeByDate(userId, date, (err, result) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).json({ message: 'DB 오류' });
+                }
+
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({ message: '해당 날짜의 야근 정보가 없습니다.' });
+                }
+
+                // 성공적으로 삭제
+                return res.status(200).json({ message: `${date}의 야근 정보가 삭제되었습니다.` });
             });
         });
     });

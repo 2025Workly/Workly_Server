@@ -4,5 +4,6 @@ const overtimeController = require('../controllers/overtimeController');
 
 router.post('/', overtimeController.addOvertime);
 router.get('/', overtimeController.getMonthOvertime);
+router.delete('/', overtimeController.deleteOvertime);
 
 module.exports = router;

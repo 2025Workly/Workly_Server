@@ -1,6 +1,6 @@
 const db = require('../db');
 
-exports.createOvertimeByUserId = (date, userId, callback) => {
+exports.createOvertimeByUserId = (userId, date, callback) => {
     const d = new Date();
     const TIME_ZONE = 9 * 60 * 60 * 1000; // UTC+9 (한국 시간 기준)
 
@@ -21,4 +21,13 @@ exports.findOvertimeByYearMonth = (userId, yearMonth, callback) => {
         WHERE userId = ? AND DATE_FORMAT(date, '%Y-%m') = ?
     `;
     db.query(sql, [userId, yearMonth], callback);
+};
+
+exports.deleteOvertimeByDate = (userId, date, callback) => {
+    const sql = `
+        DELETE FROM overtime 
+        WHERE userId = ? AND date = ?
+    `;
+    const values = [userId, date]
+    db.query(sql, values, callback);
 };
