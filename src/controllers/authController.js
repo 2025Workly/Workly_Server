@@ -125,29 +125,44 @@ exports.deleteUser = (req, res) => {
     // Authorization 헤더에서 토큰을 추출
     const token = req.headers['authorization']?.split(' ')[1]; // Bearer <token> 형태로 전달
 
-    if(!token) {
+    if (!token) {
         return res.status(401).json({ message: '토큰이 없습니다.' });
     }
 
     // 토큰 검증
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if(err) {
+        if (err) {
             return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });
         }
 
-        // 토큰 포함된 userId로 삭제
+        // userId 추출
         const userId = decoded.userId;
 
-        User.deleteUserById(userId, (err, result) => {
-            if(err) {
-                return res.status(500).json({ message: 'DB 오류류' });
-            }
-            if(result.affectedRows === 0) {
-                return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        // 사용자 존재 여부 확인
+        User.findUserByUserId(userId, (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: '서버 오류' });
             }
 
-            // 성공적으로 삭제
-            res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' });
-        })
-    })
-}
+            if (!results || results.length === 0) {
+                return res.status(404).json({ message: '유효하지 않은 사용자 ID입니다' });
+            }
+
+            // 사용자 삭제
+            User.deleteUserById(userId, (err, result) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).json({ message: 'DB 오류' });
+                }
+
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+                }
+
+                // 성공적으로 삭제
+                return res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' });
+            });
+        });
+    });
+};
