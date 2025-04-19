@@ -3,20 +3,20 @@ const sequelize = require('../db'); // Sequelize 인스턴스
 
 const User = sequelize.define('User', {
     name: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING(30),
         allowNull: false
     },
     userId: {
-        type: DataTypes.STRING(20),
+        type: DataTypes.STRING(30),
         allowNull: false,
         unique: true
     },
     pass: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING(30),
         allowNull: false
     },
     email: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING(50),
         allowNull: false,
         unique: true
     },
