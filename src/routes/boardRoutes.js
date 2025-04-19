@@ -4,6 +4,6 @@ const boardController = require('../controllers/boardController');
 
 router.post('/', boardController.addBoard);
 router.get('/', boardController.getBoard);
-router.get('/question', boardController.getQuestionBorad);
+router.get('/worry', boardController.getWorryBorad);
 
 module.exports = router;

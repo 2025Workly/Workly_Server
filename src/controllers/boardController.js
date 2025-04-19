@@ -67,7 +67,7 @@ exports.getBoard = async (req, res) => {
 };
 
 // 고민 게시글 목록 조회
-exports.getQuestionBorad = async (req, res) => {
+exports.getWorryBorad = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
 
     if(!token) {
