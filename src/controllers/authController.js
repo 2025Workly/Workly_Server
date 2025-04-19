@@ -1,4 +1,4 @@
-const User = require('../models/userModel');
+const User = require('../models/userModel'); // Sequelize User 모델
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -18,7 +18,7 @@ function validateEmail(email) {
     return regex.test(email);
 }
 
-exports.loginUser = (req, res) => {
+exports.loginUser = async (req, res) => {
     const { userId, pass } = req.body;
 
     // 유효성 검사
@@ -29,35 +29,29 @@ exports.loginUser = (req, res) => {
         return res.status(400).json({ message: '유효하지 않은 비밀번호입니다' });
     }
 
-    //해당 userId를 가진 사용자 조회
-    User.findUserByUserId(userId, async (err, result) => {
-        if (err) {
-            //DB 오류 발생 시 500 응답
-            return res.status(500).json({ message: 'DB 오류' });
-        }
+    try {
+        // 해당 userId를 가진 사용자 조회
+        const user = await User.findOne({ where: { userId } });
 
-        if(result.length <= 0) {
-            // 아이디 불일치 시 400 응답
+        if (!user) {
             return res.status(400).json({ message: '유효하지 않은 아이디입니다' });
         }
 
-        const user = result[0];
-
-        //입력된 비밀번호와 해시된 비밀번호 비교
+        // 비밀번호 비교
         const isMatch = await bcrypt.compare(pass, user.pass);
-        console.log(pass, user.pass, isMatch); // 디버깅 로그
 
         if (!isMatch) {
-            //비밀번호 불일치 시 401 응답
-            return res.status(401).json({ message: '비밀 번호가 일치하지 않습니다' });
+            return res.status(401).json({ message: '비밀번호가 일치하지 않습니다' });
         }
 
-        //JWT 토큰 생성 ( 1일 유효)
+        // JWT 토큰 생성 (1일 유효)
         const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-        //로그인 성공 응답
         res.status(200).json({ message: '로그인 성공', token });
-    });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: '서버 오류', error: err });
+    }
 }
 
 exports.joinUser = async (req, res) => {
@@ -78,51 +72,37 @@ exports.joinUser = async (req, res) => {
     }
 
     try {
-        //userId 중복 체크
-        User.findUserByUserId(userId, async (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ message: 'DB 오류', error: err });
-            }
+        // userId 중복 체크
+        const existingUser = await User.findOne({ where: { userId } });
+        if (existingUser) {
+            return res.status(400).json({ message: '이미 존재하는 아이디입니다.' });
+        }
 
-            if (result.length > 0) {
-                return res.status(400).json({ message: '이미 존재하는 아이디입니다.' });
-            }
+        // email 중복 체크
+        const existingEmail = await User.findOne({ where: { email } });
+        if (existingEmail) {
+            return res.status(400).json({ message: '이미 존재하는 이메일입니다.' });
+        }
 
-            //email 중복 체크
-            User.findUserByEmail(email, async (err, result) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ message: 'DB 오류', error: err });
-                }
+        // 비밀번호 해싱
+        const hashedPass = await bcrypt.hash(pass, 10);
 
-                if (result.length > 0) {
-                    return res.status(400).json({ message: '이미 존재하는 이메일입니다.' });
-                }
-
-                //비밀번호 해싱
-                const hashedPass = await bcrypt.hash(pass, 10);
-
-                //DB에 저장
-                User.createUser(name, userId, hashedPass, email, (err, result) => {
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).json({ message: 'DB 오류', error: err });
-                    }
-
-                    //성공 응답
-                    res.status(201).json({ message: '회원가입 성공', userId });
-                });
-            });
+        // DB에 저장
+        await User.create({
+            name,
+            userId,
+            pass: hashedPass,
+            email
         });
+
+        res.status(201).json({ message: '회원가입 성공', userId });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: '서버 오류', error });
     }
 };
 
-exports.deleteUser = (req, res) => {
-    // Authorization 헤더에서 토큰을 추출
+exports.deleteUser = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1]; // Bearer <token> 형태로 전달
 
     if (!token) {
@@ -130,39 +110,27 @@ exports.deleteUser = (req, res) => {
     }
 
     // 토큰 검증
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });
         }
 
-        // userId 추출
         const userId = decoded.userId;
 
-        // 사용자 존재 여부 확인
-        User.findUserByUserId(userId, (err, results) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ message: '서버 오류' });
-            }
-
-            if (!results || results.length === 0) {
+        try {
+            // 사용자 존재 여부 확인
+            const user = await User.findOne({ where: { userId } });
+            if (!user) {
                 return res.status(404).json({ message: '유효하지 않은 사용자 ID입니다' });
             }
 
             // 사용자 삭제
-            User.deleteUserById(userId, (err, result) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ message: 'DB 오류' });
-                }
+            await User.destroy({ where: { userId } });
 
-                if (result.affectedRows === 0) {
-                    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-                }
-
-                // 성공적으로 삭제
-                return res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' });
-            });
-        });
+            res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: '서버 오류', error });
+        }
     });
 };
