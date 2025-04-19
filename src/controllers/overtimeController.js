@@ -2,16 +2,14 @@ const Overtime = require('../models/overtimeModel');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 
-// 데이트타임 형식인지 확인
 function isSQLDateTimeFormat(date) {
-    const regex = /^\d{4}-\d{2}-\d{2}$/; 
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
     return regex.test(date);
 }
 
-// 야근 추가하기
-exports.addOvertime = (req, res) => {
+// 야근 추가
+exports.addOvertime = async (req, res) => {
     const { date } = req.body;
-    // Authorization 헤더에서 토큰 추출
     const token = req.headers['authorization']?.split(' ')[1];
 
     if (!isSQLDateTimeFormat(date)) {
@@ -22,41 +20,26 @@ exports.addOvertime = (req, res) => {
         return res.status(401).json({ message: '토큰이 없습니다.' });
     }
 
-    // 토큰 검증
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });
-        }
-
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.userId;
 
-        // 사용자 존재 여부 확인
-        User.findUserByUserId(userId, (err, user) => {
-            if (err) {
-                return res.status(500).json({ message: '서버 오류' });
-            }
-            if (!user) {
-                return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-            }
+        const user = await User.findOne({ where: { userId } });
+        if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
 
-            // 야근 추가
-            Overtime.createOvertimeByuserId(date, userId, (err, result) => {
-                if (err) {
-                    return res.status(500).json({ message: 'DB 오류' });
-                }
-                if (result.affectedRows === 0) {
-                    return res.status(404).json({ message: '야근 추가 실패' });
-                }
+        await Overtime.create({ date, userId });
 
-                // 성공적으로 추가
-                return res.status(200).json({ message: `${date} 야근 추가` });
-            });
-        });
-    });
+        return res.status(200).json({ message: `${date} 야근 추가` });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
 };
 
-// 야근 목록 불러오기
-exports.getMonthOvertime = (req, res) => {
+// 월별 야근 조회
+exports.getMonthOvertime = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
     const { year, month } = req.query;
 
@@ -70,33 +53,68 @@ exports.getMonthOvertime = (req, res) => {
 
     const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
 
-    // 토큰 검증
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });
-        }
-
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.userId;
 
-        // 사용자 존재 여부 확인
-        User.findUserByUserId(userId, (err, results) => {
-            if (err || results.length === 0) {
-                return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        const user = await User.findOne({ where: { userId } });
+        if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        const overtimes = await Overtime.findAll({
+        where: {
+            userId,
+            date: sequelize.where(
+            sequelize.fn('DATE_FORMAT', sequelize.col('date'), '%Y-%m'),
+            yearMonth
+            ),
+        },
+        });
+
+        const overtimeDays = overtimes.map(o => o.date.toISOString().slice(0, 10));
+
+        return res.status(200).json({ overtimeDays });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+};
+
+// 야근 삭제
+exports.deleteOvertime = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    const { date } = req.body;
+
+    if (!isSQLDateTimeFormat(date)) {
+        return res.status(401).json({ message: '날짜 형식이 올바르지 않습니다.' });
+    }
+
+    if (!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        
+        const user = await User.findOne({ where: { userId } });
+            if (!user) {
+            return res.status(404).json({ message: '유효하지 않은 사용자 ID입니다' });
             }
 
-            // 야근 목록 불러오기
-            Overtime.findOvertimeByYearMonth(userId, yearMonth, (err, rows) => {
-                if (err) {
-                    return res.status(500).json({ message: 'DB 오류' });
-                }
-
-                // 날짜를 YYYY-MM-DD 형식으로 변환
-                const overtimeDays = rows.map(row =>
-                    new Date(row.date).toISOString().slice(0, 10)
-                );
-
-                return res.status(200).json({ overtimeDays });
+            const deletedCount = await Overtime.destroy({
+            where: { userId, date },
             });
-        });
-    });
+
+            if (deletedCount === 0) {
+            return res.status(404).json({ message: '해당 날짜의 야근 정보가 없습니다.' });
+        }
+
+        return res.status(200).json({ message: `${date}의 야근 정보가 삭제되었습니다.` });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
 };
