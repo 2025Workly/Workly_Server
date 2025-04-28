@@ -156,3 +156,40 @@ exports.getPopularBorad = async (req, res) => {
         return res.status(500).json({ message: '서버 오류' });
     }
 };
+
+exports.increaseViews = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        const user = await User.findOne({ where: { userId } });
+        if (!user) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // 게시글 ID 가져오기
+        const boardId = req.params.id;
+
+        // 게시글 검색
+        const board = await Board.findOne({ where: { id: boardId } });
+
+        if (!board) {
+            return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
+        }
+
+        // 조회수 1 증가시키기
+        board.views += 1;
+        await board.save();
+
+        return res.status(200).json({ message: '조회수 증가 완료', views: board.views });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+};
