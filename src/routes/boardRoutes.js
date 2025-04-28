@@ -7,6 +7,7 @@ router.get('/', boardController.getBoard);
 router.get('/worry', boardController.getWorryBorad);
 router.get('/question', boardController.getQuestionBorad);
 router.get('/popular', boardController.getPopularBorad);
-router.post('/:id/increaseViews', boardController.increaseViews);
+router.post('/:id/views', boardController.increaseViews);
+router.delete('/:id', boardController.deleteBoard);
 
 module.exports = router;
