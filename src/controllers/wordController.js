@@ -1,6 +1,7 @@
 const Word = require('../models/wordModel');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
 
 // 단어 추가
 exports.addWord = async (req, res) => {
@@ -78,6 +79,44 @@ exports.getWord = async (req, res) => {
                 order: [['createdAt', 'DESC']] // 최신순
             });
         }
+
+        return res.status(200).json({ words });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+}
+
+// 단어 검색
+exports.searchWord = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    const { keyword } = req.query;
+
+    if(!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    if (!keyword) {
+        return res.status(400).json({ message: '검색어를 입력해주세요.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        const user = await User.findOne({ where: { userId } });
+        if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        const words = await Word.findAll({
+            where: {
+                word: {
+                    [Op.like]: `%${keyword}%`
+                }
+            },
+            order: [['createdAt', 'DESC']] // 최신순
+        });
 
         return res.status(200).json({ words });
     } catch (err) {

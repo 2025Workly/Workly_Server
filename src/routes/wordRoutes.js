@@ -3,6 +3,7 @@ const router = express.Router();
 const wordController = require('../controllers/wordController');
 
 router.post('/', wordController.addWord);
-router.get('/:id', wordController.getWord)
-;
+router.get('/search', wordController.searchWord);
+router.get('/:category', wordController.getWord);
+
 module.exports = router;
