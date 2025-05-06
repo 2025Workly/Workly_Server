@@ -19,14 +19,15 @@ exports.addBoard = async (req, res) => {
             return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
-        const { tag, content } = req.body;
+        const { tag, title, content } = req.body;
 
-        if (!tag || !content) {
+        if (!tag || !title || !content) {
             return res.status(400).json({ message: '태그와 내용을 모두 입력해주세요.' });
         }
 
         await Board.create({
             tag,
+            title,
             content,
             userId
         });
@@ -142,7 +143,7 @@ exports.getPopularBorad = async (req, res) => {
 
         const user = await User.findOne({ where: { userId } });
         if (!user) {
-        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
         const boards = await Board.findAll({
