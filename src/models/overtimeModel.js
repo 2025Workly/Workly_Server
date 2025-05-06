@@ -12,7 +12,7 @@ const Overtime = sequelize.define('Overtime', {
         allowNull: false,
     },
     userId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(20),
         allowNull: false,
     },
 }, {
