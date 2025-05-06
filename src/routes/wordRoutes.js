@@ -4,6 +4,7 @@ const wordController = require('../controllers/wordController');
 
 router.post('/', wordController.addWord);
 router.get('/search', wordController.searchWord);
-router.get('/:category', wordController.getWord);
+router.get('/:id', wordController.getWord);
+router.delete('/:id', wordController.deleteWord);
 
 module.exports = router;
