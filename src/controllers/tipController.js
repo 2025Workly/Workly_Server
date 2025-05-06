@@ -124,3 +124,39 @@ exports.searchTip = async (req, res) => {
         return res.status(500).json({ message: '서버 오류' });
     }
 }
+
+// 팁 삭제
+exports.deleteTip = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if(!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        const user = await User.findOne({ where: { userId } });
+        if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // 팁 ID 가져오기
+        const tipId = req.params.id;
+
+        // 단어 검색
+        const tip = await Tip.findOne({ where: { id: tipId } });
+
+        if (!tip) {
+            return res.status(404).json({ message: '팁 ID가 없습니다.' });
+        }
+
+        await tip.destroy();
+
+        return res.status(200).json({ message: '팁이 삭제되었습니다.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+}
