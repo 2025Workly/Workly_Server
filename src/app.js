@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const overtimeRoutes = require('./routes/overtimeRoutes');
 const boardRoutes = require('./routes/boardRoutes');
 const commentRoutes = require('./routes/commentRoutes');
+const wordRoutes = require('./routes/wordRoutes');
 
 app.use(express.json())
 
@@ -13,6 +14,7 @@ app.use('/user', authRoutes);
 app.use('/overtime', overtimeRoutes);
 app.use('/board', boardRoutes);
 app.use('/comment', commentRoutes);
+app.use('/word', wordRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello, node!');
