@@ -11,6 +11,10 @@ const Board = sequelize.define('Board', {
         type: DataTypes.STRING(20),
         allowNull: false,
     },
+    title: {
+        type: DataTypes.STRING(20),
+        allowNull: false,
+    },
     content: {
         type: DataTypes.STRING(1000),
         allowNull: false,

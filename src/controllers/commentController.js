@@ -44,7 +44,7 @@ exports.addComment = async (req, res) => {
     }
 };
 
-// 댓글 삭제
+// 댓글 목록
 exports.getComment = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
 
