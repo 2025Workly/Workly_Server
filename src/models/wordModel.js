@@ -1,14 +1,22 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
-const Overtime = sequelize.define('Overtime', {
+const Word = sequelize.define('Word', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    date: {
-        type: DataTypes.DATEONLY,
+    category: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+    },
+    word: {
+        type: DataTypes.STRING(30),
+        allowNull: false,
+    },
+    explanation: {
+        type: DataTypes.STRING(300),
         allowNull: false,
     },
     userId: {
@@ -17,7 +25,7 @@ const Overtime = sequelize.define('Overtime', {
     },
 }, {
     timestamps: true, // createdAt, updatedAt 자동 생성
-    tableName: 'overtime',
+    tableName: 'words',
 });
 
-module.exports = Overtime;
+module.exports = Word;

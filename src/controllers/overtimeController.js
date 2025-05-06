@@ -1,6 +1,7 @@
 const Overtime = require('../models/overtimeModel');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const sequelize = require('../db');
 
 function isSQLDateTimeFormat(date) {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
@@ -72,7 +73,7 @@ exports.getMonthOvertime = async (req, res) => {
         },
         });
 
-        const overtimeDays = overtimes.map(o => o.date.toISOString().slice(0, 10));
+        const overtimeDays = overtimes.map(o => o.date);
 
         return res.status(200).json({ overtimeDays });
     } catch (err) {
