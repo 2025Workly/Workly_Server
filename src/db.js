@@ -1,5 +1,6 @@
+require('dotenv').config({ path: './config/.env' });
+
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
 
 const sequelize = new Sequelize({
   host: process.env.DB_HOST,
@@ -9,7 +10,6 @@ const sequelize = new Sequelize({
   dialect: 'mysql',
   logging: false,
 });
-
 // 연결 확인
 sequelize.authenticate()
   .then(() => {
