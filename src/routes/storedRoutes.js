@@ -3,6 +3,6 @@ const router = express.Router();
 const storedController = require('../controllers/storedController');
 
 router.post('/', storedController.addStored);
-router.get('/:id', storedController.getStored);
+router.get('/:type/:sub', storedController.getStored);
 
 module.exports = router;

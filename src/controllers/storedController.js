@@ -40,7 +40,7 @@ exports.addStored = async (req, res) => {
     }
 }
 
-// 저장 목록
+// 저장 콘텐츠 목록
 exports.getStored = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
 
@@ -57,31 +57,53 @@ exports.getStored = async (req, res) => {
             return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
-        const category = req.params.id;
-        if (!category) {
-            return res.status(400).json({ message: '카테고리가 없습니다.' });
+        const type = req.params.type;       // tip, word
+        const subCategory = req.params.sub; // 개발, 디자인, ...
+
+        if (!type) {
+            return res.status(400).json({ message: '카테고리를 입력해주세요.' });
         }
 
+        // 현재 유저가 저장한 해당 타입의 콘텐츠 ID 목록 가져오기
         const storedItems = await Stroed.findAll({
-            where: category === '전체' ? { userId } : { userId, category }
+            where: { userId, category: type }
         });
 
-        const contentList = [];
+        const contentIds = storedItems.map(item => item.contentId);
 
-        for (const item of storedItems) {
-            if (item.category === 'tip') {
-                const tip = await Tip.findOne({ where: { id: item.contentId } });
-                if (tip) contentList.push(tip);
-            } else if (item.category === 'word') {
-                const word = await Word.findOne({ where: { id: item.contentId } });
-                if (word) contentList.push(word);
+        let result = [];
+
+        if (type === "tip") {
+            const whereClause = { id: contentIds };
+            if (subCategory && subCategory !== '전체') {
+                whereClause.category = subCategory;
             }
+
+            result = await Tip.findAll({
+                where: whereClause,
+                order: [['createdAt', 'DESC']]
+            });
+
+        } else if (type === "word") {
+            const whereClause = { id: contentIds };
+            if (subCategory && subCategory !== '전체') {
+                whereClause.category = subCategory;
+            }
+
+            result = await Word.findAll({
+                where: whereClause,
+                order: [['createdAt', 'DESC']]
+            });
+
+        } else {
+            return res.status(400).json({ message: '알 수 없는 콘텐츠 타입입니다.' });
         }
 
-        return res.status(200).json({ contents: contentList });
+        return res.status(200).json({ data: result });
 
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: '서버 오류' });
     }
 };
+
