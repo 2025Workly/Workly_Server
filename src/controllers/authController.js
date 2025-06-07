@@ -95,7 +95,7 @@ exports.joinUser = async (req, res) => {
             email
         });
 
-        res.status(201).json({ message: '회원가입 성공', userId });
+        res.status(201).json({ message: '회원가입 성공', userId, name, email });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: '서버 오류', error });
