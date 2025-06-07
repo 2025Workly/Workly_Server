@@ -20,6 +20,9 @@ const User = sequelize.define('User', {
         allowNull: false,
         unique: true
     },
+    image: {
+        type: DataTypes.STRING(300),
+    }
 }, {
     timestamps: true,  // createdAt, updatedAt 자동 생성
     tableName: 'users'

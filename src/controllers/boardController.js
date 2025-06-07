@@ -158,6 +158,35 @@ exports.getPopularBorad = async (req, res) => {
     }
 };
 
+// 나의 게시글 조회
+exports.getMyBoards = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        const user = await User.findOne({ where: { userId } });
+        if (!user) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        const myBoards = await Board.findAll({
+            where: { userId },
+            order: [['createdAt', 'DESC']]
+        });
+
+        return res.status(200).json({ boards: myBoards });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+};
+
 // 조회수 상승
 exports.increaseViews = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
