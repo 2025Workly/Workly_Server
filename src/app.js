@@ -10,6 +10,8 @@ const wordRoutes = require('./routes/wordRoutes');
 const tipRoutes = require('./routes/tipRoutes');
 const storedRoutes = require('./routes/storedRoutes');
 
+const PORT = process.env.PORT || 5000;
+
 app.use(express.json())
 
 // 라우터 등록
@@ -25,6 +27,6 @@ app.get('/', (req, res) => {
   res.send('Hello, node!');
 });
 
-app.listen(5000, () => {
-  console.log('5000번 포트에서 실행 중');
+app.listen(PORT, () => {
+  console.log(`${PORT}번 포트에서 실행 중`);
 });
