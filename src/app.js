@@ -9,6 +9,7 @@ const commentRoutes = require('./routes/commentRoutes');
 const wordRoutes = require('./routes/wordRoutes');
 const tipRoutes = require('./routes/tipRoutes');
 const storedRoutes = require('./routes/storedRoutes');
+const checkRoutes = require('./routes/checkRoutes');
 
 const PORT = process.env.PORT || 5000;
 
@@ -22,6 +23,7 @@ app.use('/comment', commentRoutes);
 app.use('/words', wordRoutes);
 app.use('/tips', tipRoutes);
 app.use('/stored', storedRoutes);
+app.use('/check', checkRoutes)
 
 app.get('/', (req, res) => {
   res.send('Hello, node!');
