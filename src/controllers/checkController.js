@@ -68,3 +68,31 @@ exports.getCheckList = async (req, res) => {
     }
 };
 
+// 체크리스트 활성/비활성 토글
+exports.toggleCheck = async (req, res) => {
+    const { checkId } = req.params;
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        const checkItem = await Check.findOne({ where: { id: checkId, userId } });
+
+        if (!checkItem) {
+            return res.status(404).json({ message: '체크리스트 항목을 찾을 수 없습니다.' });
+        }
+
+        checkItem.checked = checkItem.checked ? 0 : 1;
+        await checkItem.save();
+
+        return res.status(200).json({ message: '상태가 변경되었습니다.', checked: checkItem.checked });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+};
