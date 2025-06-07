@@ -18,6 +18,7 @@ function validateEmail(email) {
     return regex.test(email);
 }
 
+// 로그인
 exports.loginUser = async (req, res) => {
     const { userId, pass } = req.body;
 
@@ -54,6 +55,7 @@ exports.loginUser = async (req, res) => {
     }
 }
 
+// 회원가입
 exports.joinUser = async (req, res) => {
     const { name, userId, pass, email } = req.body;
 
@@ -102,6 +104,7 @@ exports.joinUser = async (req, res) => {
     }
 };
 
+// 유저 삭제
 exports.deleteUser = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1]; // Bearer <token> 형태로 전달
 
