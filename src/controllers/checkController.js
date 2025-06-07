@@ -96,3 +96,31 @@ exports.toggleCheck = async (req, res) => {
         return res.status(500).json({ message: '서버 오류' });
     }
 };
+
+// 체크리스트 삭제
+exports.deleteCheck = async (req, res) => {
+    const { checkId } = req.params;  // 여기서 checkId로 받아야 함
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        const checkItem = await Check.findOne({ where: { id: checkId, userId } });
+
+        if (!checkItem) {
+            return res.status(404).json({ message: '체크리스트 항목을 찾을 수 없습니다.' });
+        }
+
+        await checkItem.destroy();
+
+        return res.status(200).json({ message: '체크리스트 항목이 삭제되었습니다.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+};
