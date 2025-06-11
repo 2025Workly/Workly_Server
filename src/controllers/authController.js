@@ -46,7 +46,8 @@ exports.loginUser = async (req, res) => {
         }
 
         // JWT 토큰 생성 (1일 유효)
-        const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const TEN_YEARS_IN_SECONDS = 60 * 60 * 24 * 365 * 10;
+        const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: TEN_YEARS_IN_SECONDS});
 
         res.status(200).json({ message: '로그인 성공', token });
     } catch (err) {
