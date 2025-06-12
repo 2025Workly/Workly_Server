@@ -3,6 +3,7 @@ const router = express.Router();
 const boardController = require('../controllers/boardController');
 
 router.post('/', boardController.addBoard);
+router.get('/:id', boardController.getBoardById);
 router.get('/', boardController.getBoard);
 router.get('/worry', boardController.getWorryBorad);
 router.get('/question', boardController.getQuestionBorad);
