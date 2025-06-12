@@ -56,8 +56,8 @@ exports.getBoardById = async (req, res) => {
             return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
-        const boardId = req.params.id;
-
+        const boardId = Number(req.query.id);
+        console.log('boardId:', boardId);
         const board = await Board.findOne({ where: { id: boardId } });
 
         if (!board) {
