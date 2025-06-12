@@ -39,6 +39,38 @@ exports.addBoard = async (req, res) => {
     }
 };
 
+// 게시글 개별 조회
+exports.getBoardById = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        const user = await User.findOne({ where: { userId } });
+        if (!user) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        const boardId = req.params.id;
+
+        const board = await Board.findOne({ where: { id: boardId } });
+
+        if (!board) {
+            return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
+        }
+
+        return res.status(200).json({ board });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+};
+
 // 게시글 목록 조회
 exports.getBoard = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
