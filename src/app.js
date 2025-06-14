@@ -1,7 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');  // cors 모듈 import
 const app = express();
-require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const overtimeRoutes = require('./routes/overtimeRoutes');
