@@ -44,7 +44,7 @@ exports.addTip = async (req, res) => {
 exports.getTip = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
 
-    if(!token) {
+    if (!token) {
         return res.status(401).json({ message: '토큰이 없습니다.' });
     }
 
@@ -54,7 +54,7 @@ exports.getTip = async (req, res) => {
 
         const user = await User.findOne({ where: { userId } });
         if (!user) {
-        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
         // 카테고리 가져오기
@@ -66,7 +66,7 @@ exports.getTip = async (req, res) => {
         let tips = [];
 
         // 카테고리가 전체일 경우 전부 가져오기
-        if(category === "전체") {
+        if (category === "전체") {
             tips = await Tip.findAll({
                 order: [['createdAt', 'DESC']] // 최신순
             });
@@ -92,7 +92,7 @@ exports.searchTip = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
     const { keyword } = req.query;
 
-    if(!token) {
+    if (!token) {
         return res.status(401).json({ message: '토큰이 없습니다.' });
     }
 
@@ -106,7 +106,7 @@ exports.searchTip = async (req, res) => {
 
         const user = await User.findOne({ where: { userId } });
         if (!user) {
-        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
         const tips = await Tip.findAll({
@@ -127,5 +127,33 @@ exports.searchTip = async (req, res) => {
 
 // 팁 삭제
 exports.deleteTip = async (req, res) => {
-    
-}
+    const token = req.headers['authorization']?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: '토큰이 없습니다.' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+
+        const user = await User.findOne({ where: { userId } });
+        if (!user) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        const tipId = req.params.id;
+        const tip = await Tip.findOne({ where: { id: tipId } });
+
+        if (!tip) {
+            return res.status(404).json({ message: '팁 ID가 없습니다.' });
+        }
+
+        await tip.destroy();
+
+        return res.status(200).json({ message: '팁이 삭제되었습니다.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+} 
