@@ -16,6 +16,10 @@ const Check = sequelize.define('Check', {
         allowNull: false,
         defaultValue: 0
     },
+    date: {
+        type: DataTypes.DATEONLY,
+        allowNull: false
+    },
     userId: {
         type: DataTypes.STRING(30),
         allowNull: false,

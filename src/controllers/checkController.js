@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 // 체크리스트 추가
 exports.addCheck = async (req, res) => {
-    const { content } = req.body;
+    const { content, month, day } = req.body;
     const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
@@ -26,10 +26,17 @@ exports.addCheck = async (req, res) => {
             return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
+        const year = new Date().getFullYear();
+
+        const paddedMonth = String(month).padStart(2, '0');
+        const paddedDay = String(day).padStart(2, '0');
+        const date = `${year}-${paddedMonth}-${paddedDay}`;
+
         await Check.create({
             content,
             userId,
-            checked: 0
+            checked: 0,
+            date
         });
 
         return res.status(200).json({ message: '리스트가 등록되었습니다.' });
@@ -42,6 +49,7 @@ exports.addCheck = async (req, res) => {
 // 체크리스트 목록
 exports.getCheckList = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
+    const { month, day } = req.query;
 
     if (!token) {
         return res.status(401).json({ message: '토큰이 없습니다.' });
@@ -56,8 +64,20 @@ exports.getCheckList = async (req, res) => {
 
         const userId = decoded.userId;
 
+        if (!month || !day) {
+            return res.status(400).json({ message: 'month와 day는 필수입니다.' });
+        }
+
+        const year = new Date().getFullYear();
+        const paddedMonth = String(month).padStart(2, '0');
+        const paddedDay = String(day).padStart(2, '0');
+        const targetDate = `${year}-${paddedMonth}-${paddedDay}`;
+
         const checkList = await Check.findAll({
-            where: { userId },
+            where: {
+                userId,
+                date: targetDate
+            },
             order: [['createdAt', 'DESC']]
         });
 
@@ -99,7 +119,7 @@ exports.toggleCheck = async (req, res) => {
 
 // 체크리스트 삭제
 exports.deleteCheck = async (req, res) => {
-    const { checkId } = req.params;  // 여기서 checkId로 받아야 함
+    const { checkId } = req.params;
     const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
