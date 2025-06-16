@@ -1,4 +1,5 @@
-const Comment = require('../models/commentModel');
+// 올바르게 통일된 예
+const Comment = require('../models/CommentModel');
 const User = require('../models/userModel');
 const Board = require('../models/boardModel');
 const jwt = require('jsonwebtoken');
