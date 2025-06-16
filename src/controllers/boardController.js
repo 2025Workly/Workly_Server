@@ -1,3 +1,4 @@
+const Comment = require('../models/CommentModel');
 const Board = require('../models/boardModel');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
@@ -190,7 +191,7 @@ exports.getPopularBorad = async (req, res) => {
     }
 };
 
-// 나의 게시글 조회
+// 나의 게시글 조회 (전체, 고민, 질문)
 exports.getMyBoards = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
 
@@ -207,10 +208,30 @@ exports.getMyBoards = async (req, res) => {
             return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
-        const myBoards = await Board.findAll({
-            where: { userId },
-            order: [['createdAt', 'DESC']]
-        });
+        const { tag } = req.query;
+        let myBoards = [];
+        const whereClause = { userId };
+        console.log('tag:', tag);
+        console.log('whereClause:', whereClause);
+
+        if(tag) {
+            if (tag === 'worry') {
+                whereClause.tag = '고민';
+            } else if (tag === 'question') {
+                whereClause.tag = '질문';
+            }
+
+            myBoards = await Board.findAll({
+                where: whereClause,
+                order: [['createdAt', 'DESC']],
+            });
+        }
+        else {
+            myBoards = await Board.findAll({
+                where: whereClause,
+                order: [['createdAt', 'DESC']]
+            })
+        }
 
         return res.status(200).json({ boards: myBoards });
     } catch (err) {
@@ -283,6 +304,9 @@ exports.deleteBoard = async (req, res) => {
         if (!board) {
             return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' });
         }
+        
+        // 댓글 검색
+        await Comment.destroy({ where: { boardId } });
 
         // 게시글 삭제
         await board.destroy();
