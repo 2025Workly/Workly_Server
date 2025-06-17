@@ -132,11 +132,7 @@ exports.toggleStored = async (req, res) => {
             return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
-        const exists = await contentExists(contentId, category);
-        if (!exists) {
-            return res.status(400).json({ message: '존재하지 않는 콘텐츠입니다.' });
-        }
-
+        // 함수 선언을 호출 이전에 위치
         const contentExists = async (contentId, category) => {
             if (category === 'tip') {
                 const tip = await Tip.findByPk(contentId);
@@ -148,6 +144,11 @@ exports.toggleStored = async (req, res) => {
                 throw new Error('지원되지 않는 카테고리입니다.');
             }
         };
+
+        const exists = await contentExists(contentId, category);
+        if (!exists) {
+            return res.status(400).json({ message: '존재하지 않는 콘텐츠입니다.' });
+        }
 
         const storedContent = await Stroed.findOne({
             where: { userId, category, contentId }
@@ -169,3 +170,4 @@ exports.toggleStored = async (req, res) => {
         return res.status(500).json({ message: '서버 오류' });
     }
 };
+
