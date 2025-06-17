@@ -28,7 +28,6 @@ exports.getStored = async (req, res) => {
             return res.status(400).json({ message: '카테고리를 입력해주세요.' });
         }
 
-        // 현재 유저가 저장한 해당 타입의 콘텐츠 ID 목록 가져오기
         const storedItems = await Stroed.findAll({
             where: { userId, category: type }
         });
@@ -114,8 +113,8 @@ const contentExists = async (contentId, category) => {
     }
     return false;
 };
-// 저장하거나 삭제하는 API
 
+// 저장 콘텐츠 추가 및 삭제 토글
 exports.toggleStored = async (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
     const { contentId, category } = req.body;
@@ -133,11 +132,22 @@ exports.toggleStored = async (req, res) => {
             return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
         }
 
-        // 여기에 콘텐츠 존재 여부 확인 추가
         const exists = await contentExists(contentId, category);
         if (!exists) {
             return res.status(400).json({ message: '존재하지 않는 콘텐츠입니다.' });
         }
+
+        const contentExists = async (contentId, category) => {
+            if (category === 'tip') {
+                const tip = await Tip.findByPk(contentId);
+                return !!tip;
+            } else if (category === 'word') {
+                const word = await Word.findByPk(contentId);
+                return !!word;
+            } else {
+                throw new Error('지원되지 않는 카테고리입니다.');
+            }
+        };
 
         const storedContent = await Stroed.findOne({
             where: { userId, category, contentId }
