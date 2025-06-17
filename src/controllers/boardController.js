@@ -1,4 +1,4 @@
-const Comment = require('../models/CommentModel');
+const Comment = require('../models/commentModel');
 const Board = require('../models/boardModel');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
