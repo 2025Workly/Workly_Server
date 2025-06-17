@@ -21,7 +21,7 @@ const Stroed = sequelize.define('Stroed', {
     },
 }, {
     timestamps: true, // createdAt, updatedAt 자동 생성
-    tableName: 'storedlist',
+    tableName: 'storedList',
 });
 
 module.exports = Stroed;
