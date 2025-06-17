@@ -1,5 +1,5 @@
 // 올바르게 통일된 예
-const Comment = require('../models/CommentModel');
+const Comment = require('../models/commentModel');
 const User = require('../models/userModel');
 const Board = require('../models/boardModel');
 const jwt = require('jsonwebtoken');
